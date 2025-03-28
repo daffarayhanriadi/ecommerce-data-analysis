@@ -7,12 +7,12 @@ import streamlit as st
 sns.set(style="dark")
 st.header(":shopping_trolley: E-Commerce Dashboard :shopping_trolley:")
 
-orders_trend_df = pd.read_csv("./orders_trend.csv")
-selling_df = pd.read_csv("./selling.csv")
-top_payment_methods_df = pd.read_csv("./top_payment_methods.csv")
-top_city_transaction_df = pd.read_csv("./top_city_transaction.csv")
-geo_customer_distribution_df = pd.read_csv("./geo_customer_distribution.csv")
-geo_top_city_transaction_df = pd.read_csv("./geo_top_city_transaction.csv")
+orders_trend_df = pd.read_csv("https://raw.githubusercontent.com/daffarayhanriadi/ecommerce-data-analysis/refs/heads/main/dashboard/orders_trend.csv")
+selling_df = pd.read_csv("https://raw.githubusercontent.com/daffarayhanriadi/ecommerce-data-analysis/refs/heads/main/dashboard/selling.csv")
+top_payment_methods_df = pd.read_csv("https://raw.githubusercontent.com/daffarayhanriadi/ecommerce-data-analysis/refs/heads/main/dashboard/top_payment_methods.csv")
+top_city_transaction_df = pd.read_csv("https://raw.githubusercontent.com/daffarayhanriadi/ecommerce-data-analysis/refs/heads/main/dashboard/top_city_transaction.csv")
+geo_customer_distribution_df = pd.read_csv("https://raw.githubusercontent.com/daffarayhanriadi/ecommerce-data-analysis/refs/heads/main/dashboard/geo_customer_distribution.csv")
+geo_top_city_transaction_df = pd.read_csv("https://raw.githubusercontent.com/daffarayhanriadi/ecommerce-data-analysis/refs/heads/main/dashboard/geo_top_city_transaction.csv")
 
 # 1. Tren Jumlah Pesanan per Bulan
 st.write("")
