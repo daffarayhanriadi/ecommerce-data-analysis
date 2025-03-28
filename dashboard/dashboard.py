@@ -204,8 +204,8 @@ fig_map.update_layout(
 st.plotly_chart(fig_map)
 with st.expander("Insight - Geoanalysis Kota dengan Pelanggan Terbanyak"):
     st.text("""
-                Dapat dilihat berdasarkan Scatter Mapbox diatas bahwa warna dan ukuran titik menunjukkan jumlah transaksi dengan Kota São Paulo memiliki transaksi terbesar dibandingkan kota lainnya.
-                
+                Dapat dilihat berdasarkan Scatter Mapbox diatas bahwa warna (semakin gelap) dan ukuran titik (semakin besar) menunjukkan jumlah transaksi dengan Kota São Paulo memiliki transaksi terbesar dibandingkan kota lainnya.
+            
                 Meskipun tidak sebesar Kota São Paulo, dapat dilihat pula bahwa Kota Rio de Janeiro juga menunjukkan jumlah transaksi yang cukup tinggi.
             """)
 
@@ -219,7 +219,7 @@ st.write("""
 with st.sidebar:
     st.markdown("<h3 style='text-align: center;'> 🔗 GitHub Repository</h3>", unsafe_allow_html=True)
     github_logo_url = "https://cdn-icons-png.flaticon.com/512/25/25231.png"
-    repo_url = "https://github.com/dicodingacademy/assets"
+    repo_url = "https://github.com/daffarayhanriadi/ecommerce-data-analysis"
     st.markdown(f"""
                     <div style="display: flex; justify-content: center;">
                         <a href="{repo_url}" target="_blank">
