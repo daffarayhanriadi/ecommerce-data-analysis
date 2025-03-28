@@ -1,50 +1,69 @@
-# Proyek Analisis Data with Python: E-Commerce Public Dataset
+# 📊 Proyek Analisis Data dengan Python: E-Commerce Dashboard
 
-Link Streamlit Cloud: [E-Commerce Dashboard by Daffa](https://daffa-ecommerce-data-analysis.streamlit.app/)
+Selamat datang di proyek **E-Commerce Dashboard**! 🚀
+Dashboard ini dibuat menggunakan **Python** dan **Streamlit** untuk menganalisis dan memvisualisasikan data transaksi e-commerce.
 
-## Screenshot Dashboard
-<img src="dashboardss.PNG">
+🔗 **Lihat Dashboard Live:** [Klik di sini](https://daffa-ecommerce-data-analysis.streamlit.app/)
 
-## Setup Project
-1. Clone this repository
-```
-   git clone https://github.com/daffarayhanriadi/ecommerce-data-analysis.git
-```
+---
 
-2. Move to this repository
-```
-   cd My_Python_Analysis_Ecommerce-main
-```
+## 📸 Screenshot Dashboard
+![Dashboard](dashboard.PNG)
 
-3. Make the virtual environment
-```
-   python -m venv my_venv
-```
-   
-4. Activate the virtual environment
-```
-   my_venv\Scripts\activate
+---
+
+## 🛠️ Setup Proyek
+Ikuti langkah-langkah berikut untuk menjalankan proyek:
+
+### 1️⃣ Clone Repository
+```sh
+ git clone https://github.com/daffarayhanriadi/ecommerce-data-analysis.git
 ```
 
-5. Install requirements from "requirements.txt"
-```
-   pip install -r requirements.txt
-```
-
-6. Install a virtual environment
-```
-   python -m ipykernel install --name=my_venv
-```
-   
-7. Deactivate the virtual environment
-```
-   my_venv\Scripts\deactivate
-```
-  
-8. To run streamlit app
-```
-   streamlit run dashboard/dashboard.py
+### 2️⃣ Masuk ke Direktori Proyek
+```sh
+ cd ecommerce-data-analysis
 ```
 
-## Reference
-[Brazilian E-Commerce Public Dataset](https://drive.google.com/file/d/1MsAjPM7oKtVfJL_wRp1qmCajtSG1mdcK/view?usp=sharing)
+### 3️⃣ Buat Virtual Environment
+#### 🔹 Windows
+```sh
+ python -m venv my_venv
+```
+
+#### 🔹 macOS/Linux
+```sh
+ python3 -m venv my_venv
+```
+
+### 4️⃣ Aktifkan Virtual Environment
+#### 🔹 Windows
+```sh
+ my_venv\Scripts\activate
+```
+#### 🔹 macOS/Linux
+```sh
+ source my_venv/bin/activate
+```
+
+### 5️⃣ Install Dependencies
+```sh
+ pip install -r requirements.txt
+```
+
+### 6️⃣ Jalankan Aplikasi Streamlit
+```sh
+ streamlit run dashboard/dashboard.py
+```
+
+### 7️⃣ (Opsional) Nonaktifkan Virtual Environment
+```sh
+ deactivate
+```
+
+---
+
+## 📚 Referensi Dataset
+Dataset yang digunakan dalam proyek ini berasal dari **Brazilian E-Commerce Public Dataset**.
+
+🔗 **Download Dataset:** [Klik di sini](https://drive.google.com/file/d/1MsAjPM7oKtVfJL_wRp1qmCajtSG1mdcK/view?usp=sharing)
