@@ -1,6 +1,6 @@
 # Proyek Analisis Data with Python: E-Commerce Public Dataset
 
-Link Streamlit Cloud: [E-Commerce Dashboard by Daffa](https://reynard-ecomdashboard.streamlit.app/)
+Link Streamlit Cloud: [E-Commerce Dashboard by Daffa](https://daffa-ecommerce-data-analysis.streamlit.app/)
 
 ## Screenshot Dashboard
 <img src="dashboardss.PNG">
