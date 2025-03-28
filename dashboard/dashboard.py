@@ -7,12 +7,12 @@ import streamlit as st
 sns.set(style="dark")
 st.header(":shopping_trolley: E-Commerce Dashboard :shopping_trolley:")
 
-orders_trend_df = pd.read_csv("orders_trend.csv")
-selling_df = pd.read_csv("selling.csv")
-top_payment_methods_df = pd.read_csv("top_payment_methods.csv")
-top_city_transaction_df = pd.read_csv("top_city_transaction.csv")
-geo_customer_distribution_df = pd.read_csv("geo_customer_distribution.csv")
-geo_top_city_transaction_df = pd.read_csv("geo_top_city_transaction.csv")
+orders_trend_df = pd.read_csv("./orders_trend.csv")
+selling_df = pd.read_csv("./selling.csv")
+top_payment_methods_df = pd.read_csv("./top_payment_methods.csv")
+top_city_transaction_df = pd.read_csv("./top_city_transaction.csv")
+geo_customer_distribution_df = pd.read_csv("./geo_customer_distribution.csv")
+geo_top_city_transaction_df = pd.read_csv("./geo_top_city_transaction.csv")
 
 # 1. Tren Jumlah Pesanan per Bulan
 st.write("")
@@ -106,7 +106,7 @@ with st.expander("Apa metode pembayaran yang paling sering digunakan oleh pelang
     st.write("""
                 Berdasarkan visualisasi diatas didapatkan bahwa metode pembayaran yang paling sering digunakan adalah **kartu kredit** dengan jumlah transaksi yang jauh lebih tinggi dibandingkan metode lainnya. Hal ini menunjukkan bahwa pelanggan lebih cenderung menggunakan kartu kredit.
 
-                Boleto, yang merupakan metode pembayaran berbasis slip pembayaran di Brasil, menempati posisi kedua dengan jumlah transaksi yang cukup signifikan, meskipun masih jauh di bawah kartu kredit. Ini menunjukkan bahwa ada segmen pelanggan yang lebih nyaman menggunakan metode pembayaran non-kartu.
+                Boleto, yang merupakan metode pembayaran berbasis slip pembayaran di Brazil, menempati posisi kedua dengan jumlah transaksi yang cukup signifikan, meskipun masih jauh di bawah kartu kredit. Ini menunjukkan bahwa ada segmen pelanggan yang lebih nyaman menggunakan metode pembayaran non-kartu.
 
                 Voucher dan debit card memiliki jumlah transaksi yang sangat sedikit, menunjukkan bahwa metode ini kurang diminati oleh pelanggan. Kategori not_defined sangat kecil, yang berarti sebagian besar transaksi memiliki metode pembayaran yang jelas.
              """)
@@ -158,7 +158,7 @@ fig = px.scatter_mapbox(
     lat="geolocation_lat",
     lon="geolocation_lng",
     hover_name="customer_city",
-    title="Geoanalysis Distribusi Pelanggan di Brasil",
+    title="Geoanalysis Distribusi Pelanggan di Brazil",
     zoom=4,
     height=600,
     color_discrete_sequence=["blue"],
@@ -168,11 +168,11 @@ fig.update_layout(
     margin={"r": 0, "t": 50, "l": 0, "b": 0},
 )
 st.plotly_chart(fig)
-with st.expander("Insight - Geoanalysis Distribusi Pelanggan di Brasil"):
+with st.expander("Insight - Geoanalysis Distribusi Pelanggan di Brazil"):
     st.text("""
-                Tampilan diatas adalah tampilan dari Scatter Mapbox dari distribusi transaksi yang terdapat di brasil berdasarkan pelanggan.
+                Tampilan diatas adalah tampilan dari Scatter Mapbox dari distribusi transaksi yang terdapat di Brazil berdasarkan pelanggan.
                 
-                Sebagian besar pelanggan terkonsentrasi di wilayah tenggara dan timur Brasil, terutama di sekitar kota besar seperti São Paulo, Rio de Janeiro, dan Belo Horizonte.
+                Sebagian besar pelanggan terkonsentrasi di wilayah tenggara dan timur Brazil, terutama di sekitar kota besar seperti São Paulo, Rio de Janeiro, dan Belo Horizonte.
                 
                 Banyaknya pelanggan di wilayah tersebut dapat didasari oleh pusat ekonomi dan bisnis maupun kemajuan dari kota tersebut.
             """)
@@ -211,7 +211,7 @@ with st.expander("Insight - Geoanalysis Kota dengan Pelanggan Terbanyak"):
 
 st.subheader("Kesimpulan - 2")
 st.write("""
-            - Sebaran transaksi e-commerce di Brasil paling banyak terkonsentrasi di wilayah tenggara dan timur, terutama di kota-kota besar seperti São Paulo, Rio de Janeiro, dan Belo Horizonte. Hal ini kemungkinan dipengaruhi oleh faktor ekonomi, bisnis, dan perkembangan infrastruktur di daerah tersebut.
+            - Sebaran transaksi e-commerce di Brazil paling banyak terkonsentrasi di wilayah tenggara dan timur, terutama di kota-kota besar seperti São Paulo, Rio de Janeiro, dan Belo Horizonte. Hal ini kemungkinan dipengaruhi oleh faktor ekonomi, bisnis, dan perkembangan infrastruktur di daerah tersebut.
 
             - Kota São Paulo memiliki jumlah transaksi tertinggi dibandingkan kota lain, dengan ukuran dan warna titik yang lebih mencolok. Sementara itu, Kota Rio de Janeiro juga menunjukkan aktivitas transaksi yang cukup tinggi, meskipun tidak sebesar São Paulo.
         """)
