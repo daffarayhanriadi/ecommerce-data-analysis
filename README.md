@@ -9,7 +9,6 @@ Dashboard ini dibuat menggunakan **Python** dan **Streamlit** untuk menganalisis
 ---
 
 ## 📸 Screenshot Dashboard
-![Dashboard](dashboard.png)
 
 ---
 
