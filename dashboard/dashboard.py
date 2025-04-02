@@ -4,41 +4,163 @@ import plotly.express as px
 import seaborn as sns
 import streamlit as st
 
+
+@st.cache_data
+def order_trend(filtered_df):
+    filtered_df["month"] = filtered_df["order_purchase_timestamp"].dt.to_period("M")
+    monthly_sales = filtered_df.groupby("month")["order_id"].count().reset_index()
+    monthly_sales.columns = ["month", "sales"]
+
+    return monthly_sales
+
+
+@st.cache_data
+def top_lowest_selling(df, ascending: bool):
+    selling = (
+        df.groupby("product_category_name")
+        .agg({"order_item_id": "sum"})
+        .sort_values("order_item_id", ascending=ascending)
+        .reset_index()
+    )
+
+    selling.rename(
+        columns={
+            "product_category_name": "product_type",
+            "order_item_id": "order_total",
+        },
+        inplace=True,
+    )
+
+    return selling
+
+
+@st.cache_data
+def top_city_transaction(df):
+    top_city_transaction_df = (
+        df["customer_city"]
+        .value_counts()
+        .reset_index()
+        .sort_values(by="count", ascending=False)
+    )
+    top_city_transaction_df.rename(
+        columns={
+            "count": "transaction_amount",
+        },
+        inplace=True,
+    )
+
+    return top_city_transaction_df
+
+
+@st.cache_data
+def filtered(df, start_date, end_date):
+    start_date = pd.Timestamp(start_date)
+    end_date = pd.Timestamp(end_date)
+
+    filtered_df = df[
+        (df["order_purchase_timestamp"] >= start_date)
+        & (df["order_purchase_timestamp"] <= end_date)
+    ]
+
+    return filtered_df
+
+
+# Set tema & title dashboard
 sns.set(style="dark")
 st.header(":shopping_trolley: E-Commerce Dashboard :shopping_trolley:")
 
-orders_trend_df = pd.read_csv("https://raw.githubusercontent.com/daffarayhanriadi/ecommerce-data-analysis/refs/heads/main/dashboard/orders_trend.csv")
-selling_df = pd.read_csv("https://raw.githubusercontent.com/daffarayhanriadi/ecommerce-data-analysis/refs/heads/main/dashboard/selling.csv")
-top_payment_methods_df = pd.read_csv("https://raw.githubusercontent.com/daffarayhanriadi/ecommerce-data-analysis/refs/heads/main/dashboard/top_payment_methods.csv")
-top_city_transaction_df = pd.read_csv("https://raw.githubusercontent.com/daffarayhanriadi/ecommerce-data-analysis/refs/heads/main/dashboard/top_city_transaction.csv")
-geo_customer_distribution_df = pd.read_csv("https://raw.githubusercontent.com/daffarayhanriadi/ecommerce-data-analysis/refs/heads/main/dashboard/geo_customer_distribution.csv")
-geo_top_city_transaction_df = pd.read_csv("https://raw.githubusercontent.com/daffarayhanriadi/ecommerce-data-analysis/refs/heads/main/dashboard/geo_top_city_transaction.csv")
+# Load data
+customers_orders_df = pd.read_csv("customers_orders.csv")
+products_orders_items_df = pd.read_csv("products_orders_items.csv")
+top_payment_methods_df = pd.read_csv("top_payment_methods.csv")
+geo_customer_distributions_df = pd.read_csv("geo_customer_distributions.csv")
+geo_top_city_transactions_df = pd.read_csv("geo_top_city_transactions.csv")
+
+# Menangani Tipe Data
+customers_orders_df["order_purchase_timestamp"] = pd.to_datetime(
+    customers_orders_df["order_purchase_timestamp"]
+)
+
+# Sidebar
+with st.sidebar:
+
+    # Github
+    st.markdown(
+        "<h3 style='text-align: center;'> 🔗 GitHub Repository</h3>",
+        unsafe_allow_html=True,
+    )
+    github_logo_url = "https://cdn-icons-png.flaticon.com/512/25/25231.png"
+    repo_url = "https://github.com/daffarayhanriadi/ecommerce-data-analysis"
+    st.markdown(
+        f"""
+                    <div style="display: flex; justify-content: center;">
+                        <a href="{repo_url}" target="_blank">
+                            <img src="{github_logo_url}" width="70">
+                        </a>
+                    </div>
+                """,
+        unsafe_allow_html=True,
+    )
+    st.markdown("---")
+
+    # Filter Tanggal
+    st.subheader(":chart_with_upwards_trend: Filter Data")
+    min_date = customers_orders_df["order_purchase_timestamp"].min().date()
+    max_date = customers_orders_df["order_purchase_timestamp"].max().date()
+    start_date, end_date = st.date_input(
+        label="Pilih Rentang Tanggal",
+        min_value=min_date,
+        max_value=pd.Timestamp("2018-08-29"),
+        value=[min_date, max_date],
+    )
+    st.markdown("---")
+
+    # Sumber Data
+    st.subheader(":bar_chart: Data Source")
+    st.markdown(
+        """
+                    :link: [**Brazilian E-Commerce Dataset**](https://www.kaggle.com/datasets/olistbr/brazilian-ecommerce)  
+                    *Explore real-world e-commerce transactions in Brazil!*
+                """
+    )
+    st.markdown("---")
+
+    # Owner
+    st.markdown(
+        """
+                    :pushpin: **Created by:** Daffa Rayhan Riadi  
+                    :e-mail: **Contact:** [Email](mailto:daffarayhanriadi@gmail.com)  
+                """
+    )
 
 # 1. Tren Jumlah Pesanan per Bulan
 st.write("")
 st.write("")
 st.write("")
 st.subheader("Tren Jumlah Pesanan per Bulan (2016-2018)")
+monthly_sales_df = order_trend(filtered(customers_orders_df, start_date, end_date))
 fig, ax = plt.subplots(figsize=(10, 6))
 ax.plot(
-    orders_trend_df["order_month"].astype(str),
-    orders_trend_df["order_quantity"],
+    monthly_sales_df["month"].astype(str),
+    monthly_sales_df["sales"],
     marker="o",
     linestyle="-",
     color="b",
 )
 ax.set_xlabel(None)
 ax.set_ylabel(None)
-ax.set_xticklabels(orders_trend_df["order_month"].astype(str), rotation=45)
+ax.set_xticklabels(monthly_sales_df["month"].astype(str), rotation=45)
 st.pyplot(fig)
 with st.expander("Bagaimana tren penjualan dalam beberapa bulan terakhir?"):
-    st.write("""
+    st.write(
+        """
                 Berdasarkan visualisasi diatas dapat terlihat adanya **tren kenaikan** jumlah pesanan dari tahun 2016 hingga akhir 2017. Kenaikan ini cukup signifikan pada pertengahan 2017, menunjukkan pertumbuhan bisnis e-commerce yang stabil. 
 
                 Terdapat lonjakan besar pada November 2017, setelah itu, jumlah pesanan tetap tinggi meskipun mengalami sedikit fluktuasi. Setelah lonjakan di akhir 2017, jumlah pesanan cenderung stabil pada 2018, meskipun ada sedikit penurunan pada pertengahan 2018. Ini bisa menandakan bahwa pasar sudah mencapai titik keseimbangan setelah fase pertumbuhan yang cepat.
-            """)
+            """
+    )
 st.subheader("Tabel Lengkap Jumlah Pesanan per Bulan (2016-2018)")
-st.write(orders_trend_df)
+st.write(monthly_sales_df)
 
 
 # 2. Produk dengan Penjualan Tertinggi dan Terendah
@@ -46,13 +168,16 @@ st.write("")
 st.write("")
 st.write("")
 st.subheader("Tipe Produk Penjualan Tertinggi dan Terendah")
+top_selling = top_lowest_selling(products_orders_items_df, False)
+lowest_selling = top_lowest_selling(products_orders_items_df, True)
+
 fig, ax = plt.subplots(nrows=1, ncols=2, figsize=(35, 15))
 colors = ["#72BCD4", "#D3D3D3", "#D3D3D3", "#D3D3D3", "#D3D3D3"]
 
 sns.barplot(
     x="order_total",
     y="product_type",
-    data=selling_df.head(5),
+    data=top_selling.head(5),
     palette=colors,
     ax=ax[0],
 )
@@ -65,7 +190,7 @@ ax[0].tick_params(axis="x", labelsize=30)
 sns.barplot(
     x="order_total",
     y="product_type",
-    data=selling_df.sort_values(by="order_total", ascending=True).head(5),
+    data=lowest_selling.sort_values(by="order_total", ascending=True).head(5),
     palette=colors,
     ax=ax[1],
 )
@@ -79,13 +204,15 @@ ax[1].tick_params(axis="y", labelsize=35)
 ax[1].tick_params(axis="x", labelsize=30)
 st.pyplot(fig)
 with st.expander("Apa tipe produk yang memiliki penjualan tertinggi dan terendah?"):
-    st.write("""
+    st.write(
+        """
                 Berdasarkan visualisasi diatas bahwa tipe produk **bed_bath_table** memiliki jumlah penjualan tertinggi dibandingkan tipe produk lainnya. Tipe produkfurniture_decor, health_beauty, sports_leisure, dan computers_accessories juga memiliki angka penjualan yang cukup tinggi. Produk-produk dalam tipe produk ini cenderung berkaitan dengan kebutuhan rumah tangga, kecantikan, dan gaya hidup, yang menunjukkan bahwa pelanggan lebih sering membeli produk yang berkaitan dengan kebutuhan sehari-hari.
 
                 Sebaliknya tipe produk **security_and_services** memiliki jumlah penjualan terendah, jauh di bawah tipe produk lainnya. Produk dalam tipe produk fashion_childrens_clothes, pc_gamer, cds_dvds_musicals, dan la_cuisine juga memiliki angka penjualan yang sangat rendah. Ini menunjukkan bahwa produk seperti jasa keamanan, pakaian anak-anak, perlengkapan gaming, media fisik (CD/DVD), dan peralatan dapur khusus kurang diminati atau memiliki pasar yang lebih kecil.
-             """)
+             """
+    )
 st.subheader("Tabel Lengkap Penjualan Per Tipe Produk")
-st.write(selling_df)
+st.write(top_selling)
 
 # 3. Metode Pembayaran Terpopuler
 st.write("")
@@ -103,13 +230,15 @@ sns.barplot(
 )
 st.pyplot(fig)
 with st.expander("Apa metode pembayaran yang paling sering digunakan oleh pelanggan?"):
-    st.write("""
+    st.write(
+        """
                 Berdasarkan visualisasi diatas didapatkan bahwa metode pembayaran yang paling sering digunakan adalah **kartu kredit** dengan jumlah transaksi yang jauh lebih tinggi dibandingkan metode lainnya. Hal ini menunjukkan bahwa pelanggan lebih cenderung menggunakan kartu kredit.
 
                 Boleto, yang merupakan metode pembayaran berbasis slip pembayaran di Brazil, menempati posisi kedua dengan jumlah transaksi yang cukup signifikan, meskipun masih jauh di bawah kartu kredit. Ini menunjukkan bahwa ada segmen pelanggan yang lebih nyaman menggunakan metode pembayaran non-kartu.
 
                 Voucher dan debit card memiliki jumlah transaksi yang sangat sedikit, menunjukkan bahwa metode ini kurang diminati oleh pelanggan. Kategori not_defined sangat kecil, yang berarti sebagian besar transaksi memiliki metode pembayaran yang jelas.
-             """)
+             """
+    )
 st.subheader("Tabel Lengkap Metode Pembayaran Yang Paling Sering Digunakan")
 st.write(top_payment_methods_df)
 
@@ -118,35 +247,42 @@ st.write("")
 st.write("")
 st.write("")
 st.subheader("Top 5 Kota Berdasarkan Jumlah Transaksi")
-top_city_transactions = top_city_transaction_df.head(5)
+top_city_transactions = top_city_transaction(customers_orders_df)
+top_city_transactions_viz = top_city_transactions.head(5)
 fig, ax = plt.subplots(figsize=(10, 6))
-colors = ["#72BCD4" if i == 0 else "#D3D3D3" for i in range(len(top_city_transactions))]
+colors = ["#72BCD4" if i == 0 else "#D3D3D3" for i in range(len(top_city_transactions_viz))]
 ax.barh(
-    top_city_transactions["customer_city"],
-    top_city_transactions["transaction_amount"],
+    top_city_transactions_viz["customer_city"],
+    top_city_transactions_viz["transaction_amount"],
     color=colors,
 )
 ax.set_title("Top 5 Kota Berdasarkan Jumlah Transaksi")
 ax.invert_yaxis()
 st.pyplot(fig)
-with st.expander("Kota mana yang memiliki jumlah transaksi terbanyak berdasarkan data pelanggan?"):
-    st.write("""
+with st.expander(
+    "Kota mana yang memiliki jumlah transaksi terbanyak berdasarkan data pelanggan?"
+):
+    st.write(
+        """
                 Berdasarkan visualisasi diatas diketahui bahwa **Sao Paulo** memiliki jumlah transaksi yang jauh lebih tinggi dibandingkan kota lainnya, menunjukkan bahwa kota ini adalah pasar utama untuk bisnis e-commerce. Hal ini bisa disebabkan oleh populasi yang besar, daya beli yang tinggi, atau infrastruktur e-commerce yang lebih baik maupun kota yang lebih maju.
 
                 Rio de Janeiro berada di posisi kedua, meskipun jumlah transaksinya jauh lebih rendah dibandingkan Sao Paulo. Ini menunjukkan bahwa meskipun Rio de Janeiro memiliki pasar besar, potensinya mungkin belum dimanfaatkan secara maksimal dibandingkan Sao Paulo.
 
                 Sedangkan Belo Horizonte, Brasilia, dan Curitiba, ketiga kota ini menunjukkan jumlah transaksi yang signifikan tetapi masih jauh lebih rendah dibandingkan dua kota teratas.
-             """)
+             """
+    )
 st.subheader("Tabel Lengkap Kota Dengan Jumlah Transaksi Terbanyak")
 st.write(top_city_transactions)
 
 st.subheader("Kesimpulan - 1")
-st.write("""
+st.write(
+    """
             - Jumlah pesanan e-commerce mengalami tren kenaikan dari 2016 hingga akhir 2017, dengan lonjakan besar pada November 2017. Setelah itu, pesanan stabil pada 2018 dengan sedikit fluktuasi, menunjukkan pasar mulai mencapai keseimbangan.
             - Produk bed_bath_table memiliki penjualan tertinggi, diikuti oleh kategori rumah tangga, kecantikan, dan gaya hidup. Sebaliknya, kategori seperti security_and_services, pakaian anak-anak, gaming, dan media fisik memiliki penjualan yang sangat rendah, menunjukkan permintaan yang lebih kecil.
             - Kartu kredit adalah metode pembayaran yang paling sering digunakan, menunjukkan preferensi pelanggan terhadap transaksi berbasis kartu. Boleto masih memiliki pangsa pasar signifikan, sementara voucher dan debit card kurang diminati.
             - Sao Paulo mendominasi jumlah transaksi e-commerce, diikuti oleh Rio de Janeiro dengan selisih yang besar. Kota lain seperti Belo Horizonte, Brasília, dan Curitiba menunjukkan potensi pertumbuhan lebih lanjut.
-        """)
+        """
+)
 
 # Analisis Lanjutan
 st.write("")
@@ -154,7 +290,7 @@ st.write("")
 st.write("")
 st.subheader("Analisis Lanjutan")
 fig = px.scatter_mapbox(
-    geo_customer_distribution_df,
+    geo_customer_distributions_df,
     lat="geolocation_lat",
     lon="geolocation_lng",
     hover_name="customer_city",
@@ -164,24 +300,26 @@ fig = px.scatter_mapbox(
     color_discrete_sequence=["blue"],
     mapbox_style="open-street-map",
 )
-fig.update_layout( 
+fig.update_layout(
     margin={"r": 0, "t": 50, "l": 0, "b": 0},
 )
 st.plotly_chart(fig)
 with st.expander("Insight - Geoanalysis Distribusi Pelanggan di Brazil"):
-    st.text("""
+    st.text(
+        """
                 Tampilan diatas adalah tampilan dari Scatter Mapbox dari distribusi transaksi yang terdapat di Brazil berdasarkan pelanggan.
                 
                 Sebagian besar pelanggan terkonsentrasi di wilayah tenggara dan timur Brazil, terutama di sekitar kota besar seperti São Paulo, Rio de Janeiro, dan Belo Horizonte.
                 
                 Banyaknya pelanggan di wilayah tersebut dapat didasari oleh pusat ekonomi dan bisnis maupun kemajuan dari kota tersebut.
-            """)
+            """
+    )
 
 st.write("")
 st.write("")
 st.write("")
 fig_map = px.scatter_mapbox(
-    geo_top_city_transaction_df,
+    geo_top_city_transactions_df,
     lat="geolocation_lat",
     lon="geolocation_lng",
     size="transaction_amount",
@@ -197,47 +335,27 @@ fig_map = px.scatter_mapbox(
     color_continuous_scale="Blues",
     mapbox_style="carto-positron",
 )
-fig_map.update_layout(
-    coloraxis_showscale=False,
-    margin=dict(l=0, r=0, t=50, b=0)
-)
+fig_map.update_layout(coloraxis_showscale=False, margin=dict(l=0, r=0, t=50, b=0))
 st.plotly_chart(fig_map)
 with st.expander("Insight - Geoanalysis Kota dengan Pelanggan Terbanyak"):
-    st.text("""
+    st.text(
+        """
                 Dapat dilihat berdasarkan Scatter Mapbox diatas bahwa warna (semakin gelap) dan ukuran titik (semakin besar) menunjukkan jumlah transaksi dengan Kota São Paulo memiliki transaksi terbesar dibandingkan kota lainnya.
             
                 Meskipun tidak sebesar Kota São Paulo, dapat dilihat pula bahwa Kota Rio de Janeiro juga menunjukkan jumlah transaksi yang cukup tinggi.
-            """)
+            """
+    )
 
 st.subheader("Kesimpulan - 2")
-st.write("""
+st.write(
+    """
             - Sebaran transaksi e-commerce di Brazil paling banyak terkonsentrasi di wilayah tenggara dan timur, terutama di kota-kota besar seperti São Paulo, Rio de Janeiro, dan Belo Horizonte. Hal ini kemungkinan dipengaruhi oleh faktor ekonomi, bisnis, dan perkembangan infrastruktur di daerah tersebut.
 
             - Kota São Paulo memiliki jumlah transaksi tertinggi dibandingkan kota lain, dengan ukuran dan warna titik yang lebih mencolok. Sementara itu, Kota Rio de Janeiro juga menunjukkan aktivitas transaksi yang cukup tinggi, meskipun tidak sebesar São Paulo.
-        """)
-
-with st.sidebar:
-    st.markdown("<h3 style='text-align: center;'> 🔗 GitHub Repository</h3>", unsafe_allow_html=True)
-    github_logo_url = "https://cdn-icons-png.flaticon.com/512/25/25231.png"
-    repo_url = "https://github.com/daffarayhanriadi/ecommerce-data-analysis"
-    st.markdown(f"""
-                    <div style="display: flex; justify-content: center;">
-                        <a href="{repo_url}" target="_blank">
-                            <img src="{github_logo_url}" width="70">
-                        </a>
-                    </div>
-                """, unsafe_allow_html=True)
-    st.markdown("---")
-    st.subheader(":bar_chart: Data Source")
-    st.markdown("""
-                    :link: [**Brazilian E-Commerce Dataset**](https://www.kaggle.com/datasets/olistbr/brazilian-ecommerce)  
-                    *Explore real-world e-commerce transactions in Brazil!*
-                """)
-    st.markdown("---")
-    st.markdown("""
-                    :pushpin: **Created by:** Daffa Rayhan Riadi  
-                    :e-mail: **Contact:** [Email](mailto:daffarayhanriadi@gmail.com)  
-                """)
+        """
+)
 
 st.markdown("---")
-st.caption("Copyright © 2025 | Daffa Rayhan Riadi - Laskar AI | Passionate in Data Analytics & Artificial Intelligence")
+st.caption(
+    "Copyright © 2025 | Daffa Rayhan Riadi - Laskar AI Cohort | Passionate in Data Analytics & Artificial Intelligence"
+)
