@@ -70,11 +70,11 @@ sns.set(style="dark")
 st.header(":shopping_trolley: E-Commerce Dashboard :shopping_trolley:")
 
 # Load data
-customers_orders_df = pd.read_csv("customers_orders.csv")
-products_orders_items_df = pd.read_csv("products_orders_items.csv")
-top_payment_methods_df = pd.read_csv("top_payment_methods.csv")
-geo_customer_distributions_df = pd.read_csv("geo_customer_distributions.csv")
-geo_top_city_transactions_df = pd.read_csv("geo_top_city_transactions.csv")
+customers_orders_df = pd.read_csv("https://raw.githubusercontent.com/daffarayhanriadi/ecommerce-data-analysis/refs/heads/main/dashboard/customers_orders.csv")
+products_orders_items_df = pd.read_csv("https://raw.githubusercontent.com/daffarayhanriadi/ecommerce-data-analysis/refs/heads/main/dashboard/products_orders_items.csv")
+top_payment_methods_df = pd.read_csv("https://raw.githubusercontent.com/daffarayhanriadi/ecommerce-data-analysis/refs/heads/main/dashboard/top_payment_methods.csv")
+geo_customer_distributions_df = pd.read_csv("https://raw.githubusercontent.com/daffarayhanriadi/ecommerce-data-analysis/refs/heads/main/dashboard/geo_customer_distributions.csv")
+geo_top_city_transactions_df = pd.read_csv("https://raw.githubusercontent.com/daffarayhanriadi/ecommerce-data-analysis/refs/heads/main/dashboard/geo_top_city_transactions.csv")
 
 # Menangani Tipe Data
 customers_orders_df["order_purchase_timestamp"] = pd.to_datetime(
