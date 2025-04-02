@@ -104,7 +104,7 @@ with st.sidebar:
     st.markdown("---")
 
     # Filter Tanggal
-    st.subheader(":chart_with_upwards_trend: Filter Data")
+    st.subheader(":chart_with_upwards_trend: Filter Data Tren Jumlah Pesanan")
     min_date = customers_orders_df["order_purchase_timestamp"].min().date()
     max_date = customers_orders_df["order_purchase_timestamp"].max().date()
     start_date, end_date = st.date_input(
