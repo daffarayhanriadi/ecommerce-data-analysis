@@ -16,6 +16,7 @@ def filtered(df, start_date, end_date):
     ]
     return df
 
+
 @st.cache_data
 def order_trend(df):
     """Menghitung jumlah pesanan per bulan dari dataset transaksi."""
@@ -78,8 +79,9 @@ def top_payment_methods(df):
         },
         inplace=True,
     )
-    
+
     return df
+
 
 @st.cache_data
 def geo_top_city_transactions(df):
