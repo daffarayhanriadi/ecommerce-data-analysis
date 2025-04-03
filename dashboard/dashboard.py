@@ -6,63 +6,88 @@ import streamlit as st
 
 
 @st.cache_data
-def order_trend(filtered_df):
-    filtered_df["month"] = filtered_df["order_purchase_timestamp"].dt.to_period("M")
-    monthly_sales = filtered_df.groupby("month")["order_id"].count().reset_index()
-    monthly_sales.columns = ["month", "sales"]
+def filtered(df, start_date, end_date):
+    """Menyaring data berdasarkan rentang tanggal tertentu."""
+    start_date = pd.Timestamp(start_date)
+    end_date = pd.Timestamp(end_date)
+    df = df[
+        (df["order_purchase_timestamp"] >= start_date)
+        & (df["order_purchase_timestamp"] <= end_date)
+    ]
+    return df
 
-    return monthly_sales
+@st.cache_data
+def order_trend(df):
+    """Menghitung jumlah pesanan per bulan dari dataset transaksi."""
+    df["month"] = df["order_purchase_timestamp"].dt.to_period("M")
+    df = df.groupby("month")["order_id"].count().reset_index()
+    df.columns = ["month", "sales"]
+    return df
 
 
 @st.cache_data
 def top_lowest_selling(df, ascending: bool):
-    selling = (
+    """Menghitung produk dengan penjualan tertinggi atau terendah
+    berdasarkan jumlah item yang terjual."""
+    df = (
         df.groupby("product_category_name")
         .agg({"order_item_id": "sum"})
         .sort_values("order_item_id", ascending=ascending)
         .reset_index()
     )
-
-    selling.rename(
+    df.rename(
         columns={
             "product_category_name": "product_type",
             "order_item_id": "order_total",
         },
         inplace=True,
     )
-
-    return selling
+    return df
 
 
 @st.cache_data
 def top_city_transaction(df):
-    top_city_transaction_df = (
+    """Menghitung jumlah transaksi per kota."""
+    df = (
         df["customer_city"]
         .value_counts()
         .reset_index()
         .sort_values(by="count", ascending=False)
     )
-    top_city_transaction_df.rename(
+    df.rename(
         columns={
             "count": "transaction_amount",
         },
         inplace=True,
     )
-
-    return top_city_transaction_df
+    return df
 
 
 @st.cache_data
-def filtered(df, start_date, end_date):
-    start_date = pd.Timestamp(start_date)
-    end_date = pd.Timestamp(end_date)
+def top_payment_methods(df):
+    """Menghitung metode pembayaran terbanyak"""
+    df = (
+        df.groupby("payment_type")["order_id"]
+        .nunique()
+        .reset_index()
+        .sort_values(by="order_id", ascending=False)
+    )
+    df.rename(
+        columns={
+            "order_id": "transaction_amount",
+        },
+        inplace=True,
+    )
+    
+    return df
 
-    filtered_df = df[
-        (df["order_purchase_timestamp"] >= start_date)
-        & (df["order_purchase_timestamp"] <= end_date)
-    ]
-
-    return filtered_df
+@st.cache_data
+def geo_top_city_transactions(df):
+    """Menghitung transaksi terbanyak berdasarkan kota"""
+    city_counts = df["customer_city"].value_counts().reset_index()
+    city_counts.columns = ["customer_city", "transaction_amount"]
+    df = df.merge(city_counts, on="customer_city", how="left")
+    return df
 
 
 # Set tema & title dashboard
@@ -70,16 +95,12 @@ sns.set(style="dark")
 st.header(":shopping_trolley: E-Commerce Dashboard :shopping_trolley:")
 
 # Load data
-customers_orders_df = pd.read_csv("https://raw.githubusercontent.com/daffarayhanriadi/ecommerce-data-analysis/refs/heads/main/dashboard/customers_orders.csv")
-products_orders_items_df = pd.read_csv("https://raw.githubusercontent.com/daffarayhanriadi/ecommerce-data-analysis/refs/heads/main/dashboard/products_orders_items.csv")
-top_payment_methods_df = pd.read_csv("https://raw.githubusercontent.com/daffarayhanriadi/ecommerce-data-analysis/refs/heads/main/dashboard/top_payment_methods.csv")
-geo_customer_distributions_df = pd.read_csv("https://raw.githubusercontent.com/daffarayhanriadi/ecommerce-data-analysis/refs/heads/main/dashboard/geo_customer_distributions.csv")
-geo_top_city_transactions_df = pd.read_csv("https://raw.githubusercontent.com/daffarayhanriadi/ecommerce-data-analysis/refs/heads/main/dashboard/geo_top_city_transactions.csv")
+df = pd.read_csv(
+    "https://raw.githubusercontent.com/daffarayhanriadi/ecommerce-data-analysis/refs/heads/main/dashboard/main_data.csv"
+)
 
 # Menangani Tipe Data
-customers_orders_df["order_purchase_timestamp"] = pd.to_datetime(
-    customers_orders_df["order_purchase_timestamp"]
-)
+df["order_purchase_timestamp"] = pd.to_datetime(df["order_purchase_timestamp"])
 
 # Sidebar
 with st.sidebar:
@@ -104,15 +125,20 @@ with st.sidebar:
     st.markdown("---")
 
     # Filter Tanggal
-    st.subheader(":chart_with_upwards_trend: Filter Data Tren Jumlah Pesanan")
-    min_date = customers_orders_df["order_purchase_timestamp"].min().date()
-    max_date = customers_orders_df["order_purchase_timestamp"].max().date()
-    start_date, end_date = st.date_input(
-        label="Pilih Rentang Tanggal",
+    st.subheader(":chart_with_upwards_trend: Filter Data")
+    min_date = df["order_purchase_timestamp"].min().date()
+    max_date = df["order_purchase_timestamp"].max().date()
+    start_date = st.date_input(
+        label="Start Date",
         min_value=min_date,
-        max_value=pd.Timestamp("2018-08-29"),
-        value=[min_date, max_date],
+        value=min_date,
     )
+    end_date = st.date_input(
+        label="End Date",
+        max_value=pd.Timestamp("2018-08-29"),
+        value=max_date,
+    )
+    filtered_df = filtered(df, start_date, end_date)
     st.markdown("---")
 
     # Sumber Data
@@ -138,7 +164,7 @@ st.write("")
 st.write("")
 st.write("")
 st.subheader("Tren Jumlah Pesanan per Bulan (2016-2018)")
-monthly_sales_df = order_trend(filtered(customers_orders_df, start_date, end_date))
+monthly_sales_df = order_trend(filtered_df)
 fig, ax = plt.subplots(figsize=(10, 6))
 ax.plot(
     monthly_sales_df["month"].astype(str),
@@ -168,8 +194,8 @@ st.write("")
 st.write("")
 st.write("")
 st.subheader("Tipe Produk Penjualan Tertinggi dan Terendah")
-top_selling = top_lowest_selling(products_orders_items_df, False)
-lowest_selling = top_lowest_selling(products_orders_items_df, True)
+top_selling = top_lowest_selling(filtered_df, False)
+lowest_selling = top_lowest_selling(filtered_df, True)
 
 fig, ax = plt.subplots(nrows=1, ncols=2, figsize=(35, 15))
 colors = ["#72BCD4", "#D3D3D3", "#D3D3D3", "#D3D3D3", "#D3D3D3"]
@@ -219,12 +245,13 @@ st.write("")
 st.write("")
 st.write("")
 st.subheader("Metode Pembayaran yang Paling Sering Digunakan")
+top_payment_methods_df = top_payment_methods(filtered_df)
 fig, ax = plt.subplots(figsize=(10, 5))
 colors_ = ["#72BCD4", "#D3D3D3", "#D3D3D3", "#D3D3D3", "#D3D3D3"]
 sns.barplot(
     y="transaction_amount",
     x="payment_type",
-    data=top_payment_methods_df.sort_values(by="transaction_amount", ascending=False),
+    data=top_payment_methods_df,
     palette=colors_,
     ax=ax,
 )
@@ -236,7 +263,7 @@ with st.expander("Apa metode pembayaran yang paling sering digunakan oleh pelang
 
                 Boleto, yang merupakan metode pembayaran berbasis slip pembayaran di Brazil, menempati posisi kedua dengan jumlah transaksi yang cukup signifikan, meskipun masih jauh di bawah kartu kredit. Ini menunjukkan bahwa ada segmen pelanggan yang lebih nyaman menggunakan metode pembayaran non-kartu.
 
-                Voucher dan debit card memiliki jumlah transaksi yang sangat sedikit, menunjukkan bahwa metode ini kurang diminati oleh pelanggan. Kategori not_defined sangat kecil, yang berarti sebagian besar transaksi memiliki metode pembayaran yang jelas.
+                Voucher dan debit card memiliki jumlah transaksi yang sangat sedikit, menunjukkan bahwa metode ini kurang diminati oleh pelanggan. Metode not_defined sangat kecil, yang berarti sebagian besar transaksi memiliki metode pembayaran yang jelas.
              """
     )
 st.subheader("Tabel Lengkap Metode Pembayaran Yang Paling Sering Digunakan")
@@ -247,10 +274,12 @@ st.write("")
 st.write("")
 st.write("")
 st.subheader("Top 5 Kota Berdasarkan Jumlah Transaksi")
-top_city_transactions = top_city_transaction(customers_orders_df)
+top_city_transactions = top_city_transaction(filtered_df)
 top_city_transactions_viz = top_city_transactions.head(5)
 fig, ax = plt.subplots(figsize=(10, 6))
-colors = ["#72BCD4" if i == 0 else "#D3D3D3" for i in range(len(top_city_transactions_viz))]
+colors = [
+    "#72BCD4" if i == 0 else "#D3D3D3" for i in range(len(top_city_transactions_viz))
+]
 ax.barh(
     top_city_transactions_viz["customer_city"],
     top_city_transactions_viz["transaction_amount"],
@@ -278,7 +307,7 @@ st.subheader("Kesimpulan - 1")
 st.write(
     """
             - Jumlah pesanan e-commerce mengalami tren kenaikan dari 2016 hingga akhir 2017, dengan lonjakan besar pada November 2017. Setelah itu, pesanan stabil pada 2018 dengan sedikit fluktuasi, menunjukkan pasar mulai mencapai keseimbangan.
-            - Produk bed_bath_table memiliki penjualan tertinggi, diikuti oleh kategori rumah tangga, kecantikan, dan gaya hidup. Sebaliknya, kategori seperti security_and_services, pakaian anak-anak, gaming, dan media fisik memiliki penjualan yang sangat rendah, menunjukkan permintaan yang lebih kecil.
+            - Produk bed_bath_table memiliki penjualan tertinggi, diikuti oleh tipe produk rumah tangga, kecantikan, dan gaya hidup. Sebaliknya, tipe produk seperti security_and_services, pakaian anak-anak, gaming, dan media fisik memiliki penjualan yang sangat rendah, menunjukkan permintaan yang lebih kecil.
             - Kartu kredit adalah metode pembayaran yang paling sering digunakan, menunjukkan preferensi pelanggan terhadap transaksi berbasis kartu. Boleto masih memiliki pangsa pasar signifikan, sementara voucher dan debit card kurang diminati.
             - Sao Paulo mendominasi jumlah transaksi e-commerce, diikuti oleh Rio de Janeiro dengan selisih yang besar. Kota lain seperti Belo Horizonte, Brasília, dan Curitiba menunjukkan potensi pertumbuhan lebih lanjut.
         """
@@ -290,7 +319,7 @@ st.write("")
 st.write("")
 st.subheader("Analisis Lanjutan")
 fig = px.scatter_mapbox(
-    geo_customer_distributions_df,
+    filtered_df,
     lat="geolocation_lat",
     lon="geolocation_lng",
     hover_name="customer_city",
@@ -318,6 +347,7 @@ with st.expander("Insight - Geoanalysis Distribusi Pelanggan di Brazil"):
 st.write("")
 st.write("")
 st.write("")
+geo_top_city_transactions_df = geo_top_city_transactions(filtered_df)
 fig_map = px.scatter_mapbox(
     geo_top_city_transactions_df,
     lat="geolocation_lat",
